@@ -121,3 +121,10 @@ header.nav-open .nav-links {
 
 /* Improve touch targets */
 button, .btn-buy, .btn-icon { touch-action: manipulation; }
+
+/* Staff card small layout + Yasmin highlight */
+.staff-card { display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:16px; }
+.staff-card .staff-flag { font-size:1.4rem; }
+.yasmin-highlight { border: 2px solid #007bff !important; border-radius: 14px; box-shadow: 0 6px 20px rgba(0,123,255,0.12); }
+
+.gabriel-highlight { border: 2px solid #ff0033 !important; border-radius: 14px; box-shadow: 0 6px 20px rgba(255,0,51,0.12); }

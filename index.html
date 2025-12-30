@@ -20,9 +20,10 @@
             <li><a onclick="showTab('perifericos')">EQUIPAMENTOS</a></li>
             <li><a onclick="showTab('painel')">PAINEL</a></li>
             <li><a onclick="showTab('staff')">EQUIPE</a></li>
-            <li><a onclick="showTab('feedback')" style="color:#00f2ff; font-weight: bold;">FEEDBACK</a></li>
         </ul>
         <div class="actions">
+            <button class="btn-icon" onclick="openPrivateFeedback()">✉️</button>
+            <button class="btn-icon" onclick="openEmailConfig()">⚙️</button>
             <button class="btn-icon" onclick="toggleCart()">
                 🛒 <span id="cart-count">0</span>
             </button>
@@ -31,23 +32,7 @@
 
     <main id="app"></main>
 
-    <section id="feedback-section" style="display:none; padding: 120px 5% 50px; max-width: 1000px; margin: 0 auto;">
-        <h2 style="font-family:'Orbitron'; color:#00f2ff; margin-bottom:20px; text-align:center;">COMUNIDADE NEXUS</h2>
-        <div class="card" style="text-align:left; margin-bottom:40px; background: rgba(10,10,21,0.8); padding: 20px; border: 1px solid #333;">
-            <h3 style="font-family:'Orbitron'; margin-bottom:15px; font-size: 1rem;">DEIXE SUA AVALIAÇÃO OU RECLAMAÇÃO</h3>
-            <input type="text" id="comm-name" placeholder="Seu Nome" style="width:100%; margin-bottom:10px; padding:10px;">
-            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                <select id="comm-type" style="flex:1; padding:10px;">
-                    <option value="elogio">Elogio / Sugestão</option>
-                    <option value="reclamacao">Reclamação</option>
-                </select>
-                <select id="comm-rating" style="flex:1; padding:10px;"></select>
-            </div>
-            <textarea id="comm-text" placeholder="Escreva aqui seu comentário..." style="width:100%; height:100px; background:rgba(0,0,0,0.5); border:1px solid #333; color:white; padding:10px; border-radius:8px; margin-bottom:10px; font-family:'Poppins';"></textarea>
-            <button class="btn-buy" onclick="saveComment()">PUBLICAR COMENTÁRIO</button>
-        </div>
-        <div id="comments-display"></div>
-    </section>
+    <!-- Feedback público removido. Foi substituído por um formulário privado (modal) acessível via ícone no topo. -->
 
     <div id="cart-modal" class="modal">
         <span class="close-modal" onclick="toggleCart()">X</span>
@@ -56,6 +41,48 @@
         <div style="border-top: 1px solid #00f2ff; padding-top:10px;">
             <h3>TOTAL: R$ <span id="cart-total">0</span></h3>
             <button class="btn-buy" style="margin-top:15px;" onclick="openCheckout()">FINALIZAR COMPRA</button>
+        </div>
+    </div>
+
+    <!-- Private feedback modal (submits only to owner via EmailJS) -->
+    <div id="private-feedback-modal" class="modal">
+        <span class="close-modal" onclick="closePrivateFeedback()">X</span>
+        <h2 style="font-family:'Orbitron'; color:#00f2ff; margin-bottom:10px;">Reclamação / Sugestão</h2>
+        <div style="max-height: 60vh; overflow-y: auto;">
+            <input type="text" id="pf-name" placeholder="Seu Nome (opcional)">
+            <div style="display:flex; gap:10px; margin-top:8px;">
+                <select id="pf-type" style="flex:1;">
+                    <option value="elogio">Elogio / Sugestão</option>
+                    <option value="reclamacao">Reclamação</option>
+                </select>
+            </div>
+            <textarea id="pf-text" placeholder="Escreva aqui sua mensagem..." style="width:100%; height:150px; margin-top:10px;"></textarea>
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <button class="btn-buy" onclick="submitPrivateFeedback()">ENVIAR (será enviado apenas ao proprietário)</button>
+                <button class="btn-buy" style="background:linear-gradient(45deg,#777,#555);" onclick="closePrivateFeedback()">CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email configuration modal for owner (EmailJS) -->
+    <div id="email-config-modal" class="modal">
+        <span class="close-modal" onclick="closeEmailConfig()">X</span>
+        <h2 style="font-family:'Orbitron'; color:#00f2ff; margin-bottom:10px;">Configuração de Email (EmailJS)</h2>
+        <div style="max-height: 60vh; overflow-y: auto;">
+            <p style="font-size:0.9rem; opacity:0.9;">Cole aqui as credenciais do EmailJS para que as mensagens enviadas pelos visitantes cheguem ao seu Gmail.</p>
+            <input id="email-service-id" placeholder="Service ID (ex: service_xxx)" style="margin-top:8px;">
+            <input id="email-template-id" placeholder="Template ID (ex: template_xxx)" style="margin-top:8px;">
+            <input id="email-public-key" placeholder="Public Key (ex: user_xxx)" style="margin-top:8px;">
+            <input id="email-owner" placeholder="Seu email (destino)" style="margin-top:8px;">
+            <div style="display:flex; gap:8px; margin-top:12px;">
+                <button class="btn-buy" onclick="saveEmailConfig()">Salvar</button>
+                <button class="btn-buy" style="background:linear-gradient(45deg,#777,#555);" onclick="closeEmailConfig()">Fechar</button>
+            </div>
+            <div style="display:flex; gap:8px; margin-top:10px;">
+                <button class="btn-buy" style="background:linear-gradient(45deg,#00aaee,#0077cc);" onclick="fillExampleEmailConfig()">Preencher exemplo</button>
+                <button class="btn-buy" style="background:linear-gradient(45deg,#00cc88,#009955);" onclick="copyRecommendedTemplate()">Copiar template recomendado</button>
+            </div>
+            <p style="font-size:0.8rem; opacity:0.8; margin-top:10px;">Observação: crie uma conta em https://www.emailjs.com/, crie um serviço (p. ex. Gmail), um template com variáveis: name, type, text, date e use a public key.</p>
         </div>
     </div>
 
@@ -84,28 +111,13 @@
         <span id="toast-message"></span>
     </div>
 
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
     <script src="script.js"></script>
-    <!-- Firebase (opcional): substitua os valores com seu projeto Firebase para sincronizar comentários entre dispositivos -->
+   
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
-        /* Para ativar o sync entre dispositivos:
-           1) Crie um projeto no Firebase
-           2) Cole aqui o bloco firebaseConfig (substitua os valores)
-           3) Remova os delimitadores /*  e */ abaixo
-        */
-        /*
-        var firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "SEU_PROJ.firebaseapp.com",
-            databaseURL: "https://SEU_PROJ.firebaseio.com",
-            projectId: "SEU_PROJ",
-            storageBucket: "SEU_PROJ.appspot.com",
-            messagingSenderId: "SENDER_ID",
-            appId: "APP_ID"
-        };
-        firebase.initializeApp(firebaseConfig);
-        */
+   
     </script>
 </body>
 </html>
