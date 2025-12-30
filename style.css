@@ -90,3 +90,34 @@ footer { background: #020208; padding: 40px; border-top: 1px solid var(--seconda
     .panel { grid-template-columns: 1fr; }
     .leaderboard { max-height: none; }
 }
+
+/* Mobile-specific adjustments */
+.menu-toggle { display: none; background: none; border: none; color: white; font-size: 1.6rem; cursor: pointer; }
+
+/* When header has nav-open, show mobile nav */
+header.nav-open .nav-links {
+    display: flex; flex-direction: column; position: absolute; top: 100%; left: 0; width: 100%; background: rgba(5,5,16,0.98);
+    padding: 12px 5%; gap: 12px; border-top: 1px solid var(--primary);
+}
+
+@media (max-width: 700px) {
+    .nav-links { display: none; }
+    .menu-toggle { display: block; }
+    header { padding: 0.8rem 4%; }
+    .logo { font-size: 1.1rem; }
+    main { padding: 100px 4% 50px; }
+    .card img { height: 150px; }
+    .grid { gap: 15px; }
+    .btn-buy { padding: 10px; }
+    .panel { grid-template-columns: 1fr; }
+    .modal { width: 95%; max-height: 85vh; overflow-y: auto; padding: 18px; }
+    /* Make reply/input areas stack nicely on mobile */
+    #feedback-section input, #feedback-section textarea, #feedback-section select { width: 100% !important; }
+    #feedback-section .card > div[style] { flex-direction: column; }
+    /* Center toast on small screens */
+    .toast { right: auto; left: 50%; transform: translateX(150%); bottom: 20px; }
+    .toast.show { transform: translateX(-50%); }
+}
+
+/* Improve touch targets */
+button, .btn-buy, .btn-icon { touch-action: manipulation; }

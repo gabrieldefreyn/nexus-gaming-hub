@@ -1,5 +1,7 @@
 let cart = JSON.parse(localStorage.getItem('nexus_cart')) || [];
 let comments = JSON.parse(localStorage.getItem('nexus_comments')) || [];
+let firebaseEnabled = false;
+let fbRef = null;
 let historyStack = ['home'];
 
 const staffMembers = [
@@ -250,6 +252,13 @@ function clearLeaderboard() {
 
 function goBack() { if(historyStack.length > 1) { historyStack.pop(); showTab(historyStack[historyStack.length-1], false); } }
 
+// Toggle menu for mobile
+function toggleMenu() {
+    const header = document.querySelector('header');
+    if (!header) return;
+    header.classList.toggle('nav-open');
+}
+
 // CHECKOUT RESTAURADO
 function openCheckout() {
     if (cart.length === 0) return showNotification("Carrinho vazio!", true);
@@ -305,6 +314,28 @@ function setupRating() {
     }
 }
 
+// Initialize Firebase comments sync if Firebase is configured in the page
+function initFirebaseComments() {
+    if (typeof firebase === 'undefined' || !firebase || !firebase.database) return;
+    try {
+        const db = firebase.database();
+        fbRef = db.ref('nexus_comments');
+        firebaseEnabled = true;
+
+        // Listen for remote changes and update local UI
+        fbRef.on('value', snapshot => {
+            const val = snapshot.val() || {};
+            // val may be an object of keyed items where keys are ids
+            const arr = Object.keys(val).map(k => val[k]).sort((a,b) => (b.dateEpoch||0) - (a.dateEpoch||0));
+            comments = arr;
+            try { localStorage.setItem('nexus_comments', JSON.stringify(comments)); } catch(e) {}
+            renderComments();
+        });
+    } catch (e) {
+        console.warn('Firestore init failed', e);
+    }
+}
+
 function saveComment() {
     const name = document.getElementById('comm-name').value;
     const type = document.getElementById('comm-type').value;
@@ -312,20 +343,42 @@ function saveComment() {
     const text = document.getElementById('comm-text').value;
     if(!name || !text || !rating) return showNotification("Preencha tudo!", true);
 
-    const newComment = { id: Date.now(), name, type, rating, text, date: new Date().toLocaleDateString(), replies: [] };
-    comments.unshift(newComment);
-    localStorage.setItem('nexus_comments', JSON.stringify(comments));
-    document.getElementById('comm-name').value = '';
-    document.getElementById('comm-text').value = '';
-    renderComments();
-    showNotification("Feedback publicado!");
+    const id = Date.now().toString();
+    const newComment = { id, name, type, rating, text, date: new Date().toLocaleDateString(), dateEpoch: Date.now(), replies: [] };
+    // If firebase is enabled, write to remote DB (will trigger the listener and update UI)
+    if (firebaseEnabled && fbRef) {
+        fbRef.child(id).set(newComment).then(() => {
+            document.getElementById('comm-name').value = '';
+            document.getElementById('comm-text').value = '';
+            showNotification("Feedback publicado!");
+        }).catch(err => {
+            console.error(err);
+            showNotification('Erro ao publicar (remote).', true);
+        });
+    } else {
+        comments.unshift(newComment);
+        try { localStorage.setItem('nexus_comments', JSON.stringify(comments)); } catch(e) {}
+        document.getElementById('comm-name').value = '';
+        document.getElementById('comm-text').value = '';
+        renderComments();
+        showNotification("Feedback publicado!");
+    }
 }
 
 // FUNÇÃO PARA EXCLUIR COMENTÁRIO
 function deleteComment(id) {
-    if(confirm("Deseja realmente excluir este comentário?")) {
+    if(!confirm("Deseja realmente excluir este comentário?")) return;
+    // If firebase enabled, remove from remote DB
+    if (firebaseEnabled && fbRef) {
+        fbRef.child(id).remove().then(() => {
+            showNotification("Comentário excluído!");
+        }).catch(err => {
+            console.error(err);
+            showNotification('Erro ao excluir (remote).', true);
+        });
+    } else {
         comments = comments.filter(c => c.id !== id);
-        localStorage.setItem('nexus_comments', JSON.stringify(comments));
+        try { localStorage.setItem('nexus_comments', JSON.stringify(comments)); } catch(e) {}
         renderComments();
         showNotification("Comentário excluído!");
     }
@@ -404,24 +457,46 @@ function showNotification(message, isError = false) {
     setTimeout(() => { toast.classList.remove('show'); }, 3000);
 }
 
-// MATRIX
+// MATRIX (responsive)
 const canvas = document.getElementById('matrix');
-if(canvas) {
+if (canvas) {
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    const letters = "NEXUS01"; const fontSize = 16;
-    const columns = canvas.width / fontSize;
-    const drops = Array(Math.floor(columns)).fill(1);
+    let fontSize = 16;
+    let columns = 0;
+    let drops = [];
+    const letters = "NEXUS01";
+    let animationId = null;
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        fontSize = Math.max(12, Math.floor(window.innerWidth / 80));
+        columns = Math.floor(canvas.width / fontSize) || 1;
+        drops = Array(columns).fill(1);
+        ctx.font = fontSize + "px Orbitron, monospace";
+    }
+
     function draw() {
-        ctx.fillStyle = "rgba(5, 5, 16, 0.05)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#00f2ff"; ctx.font = fontSize + "px Orbitron";
+        ctx.fillStyle = "rgba(5, 5, 16, 0.05)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#00f2ff";
         for (let i = 0; i < drops.length; i++) {
-            ctx.fillText(letters[Math.floor(Math.random()*letters.length)], i*fontSize, drops[i]*fontSize);
-            if (drops[i]*fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            const ch = letters[Math.floor(Math.random() * letters.length)];
+            ctx.fillText(ch, i * fontSize, drops[i] * fontSize);
+            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
             drops[i]++;
         }
+        animationId = requestAnimationFrame(draw);
     }
-    setInterval(draw, 50);
+
+    resizeCanvas();
+    draw();
+
+    window.addEventListener('resize', () => {
+        if (animationId) cancelAnimationFrame(animationId);
+        resizeCanvas();
+        draw();
+    });
 }
 
 window.onload = () => { showTab('home'); updateCartUI(); };

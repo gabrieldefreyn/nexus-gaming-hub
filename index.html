@@ -13,6 +13,7 @@
 
     <header>
         <div class="logo" onclick="showTab('home')">NEXUS<span>HUB</span></div>
+        <button class="menu-toggle" aria-label="Abrir menu" onclick="toggleMenu()">☰</button>
         <ul class="nav-links">
             <li><a onclick="showTab('pc')">PC</a></li>
             <li><a onclick="showTab('ps5')">PS5</a></li>
@@ -84,5 +85,27 @@
     </div>
 
     <script src="script.js"></script>
+    <!-- Firebase (opcional): substitua os valores com seu projeto Firebase para sincronizar comentários entre dispositivos -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script>
+        /* Para ativar o sync entre dispositivos:
+           1) Crie um projeto no Firebase
+           2) Cole aqui o bloco firebaseConfig (substitua os valores)
+           3) Remova os delimitadores /*  e */ abaixo
+        */
+        /*
+        var firebaseConfig = {
+            apiKey: "SUA_API_KEY",
+            authDomain: "SEU_PROJ.firebaseapp.com",
+            databaseURL: "https://SEU_PROJ.firebaseio.com",
+            projectId: "SEU_PROJ",
+            storageBucket: "SEU_PROJ.appspot.com",
+            messagingSenderId: "SENDER_ID",
+            appId: "APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        */
+    </script>
 </body>
 </html>
