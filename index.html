@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="favicon-32x32.png">
+    <title>Nexus Gaming Hub | Premium Store</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <canvas id="matrix"></canvas>
+
+    <header>
+        <div class="logo" onclick="showTab('home')">NEXUS<span>HUB</span></div>
+        <ul class="nav-links">
+            <li><a onclick="showTab('pc')">PC</a></li>
+            <li><a onclick="showTab('ps5')">PS5</a></li>
+            <li><a onclick="showTab('perifericos')">EQUIPAMENTOS</a></li>
+            <li><a onclick="showTab('painel')">PAINEL</a></li>
+            <li><a onclick="showTab('staff')">EQUIPE</a></li>
+            <li><a onclick="showTab('feedback')" style="color:#00f2ff; font-weight: bold;">FEEDBACK</a></li>
+        </ul>
+        <div class="actions">
+            <button class="btn-icon" onclick="toggleCart()">
+                🛒 <span id="cart-count">0</span>
+            </button>
+        </div>
+    </header>
+
+    <main id="app"></main>
+
+    <section id="feedback-section" style="display:none; padding: 120px 5% 50px; max-width: 1000px; margin: 0 auto;">
+        <h2 style="font-family:'Orbitron'; color:#00f2ff; margin-bottom:20px; text-align:center;">COMUNIDADE NEXUS</h2>
+        <div class="card" style="text-align:left; margin-bottom:40px; background: rgba(10,10,21,0.8); padding: 20px; border: 1px solid #333;">
+            <h3 style="font-family:'Orbitron'; margin-bottom:15px; font-size: 1rem;">DEIXE SUA AVALIAÇÃO OU RECLAMAÇÃO</h3>
+            <input type="text" id="comm-name" placeholder="Seu Nome" style="width:100%; margin-bottom:10px; padding:10px;">
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <select id="comm-type" style="flex:1; padding:10px;">
+                    <option value="elogio">Elogio / Sugestão</option>
+                    <option value="reclamacao">Reclamação</option>
+                </select>
+                <select id="comm-rating" style="flex:1; padding:10px;"></select>
+            </div>
+            <textarea id="comm-text" placeholder="Escreva aqui seu comentário..." style="width:100%; height:100px; background:rgba(0,0,0,0.5); border:1px solid #333; color:white; padding:10px; border-radius:8px; margin-bottom:10px; font-family:'Poppins';"></textarea>
+            <button class="btn-buy" onclick="saveComment()">PUBLICAR COMENTÁRIO</button>
+        </div>
+        <div id="comments-display"></div>
+    </section>
+
+    <div id="cart-modal" class="modal">
+        <span class="close-modal" onclick="toggleCart()">X</span>
+        <h2 style="font-family:'Orbitron'; color:#00f2ff; margin-bottom:20px;">MEU CARRINHO</h2>
+        <div id="cart-items-list" style="max-height: 200px; overflow-y: auto; margin-bottom: 20px;"></div>
+        <div style="border-top: 1px solid #00f2ff; padding-top:10px;">
+            <h3>TOTAL: R$ <span id="cart-total">0</span></h3>
+            <button class="btn-buy" style="margin-top:15px;" onclick="openCheckout()">FINALIZAR COMPRA</button>
+        </div>
+    </div>
+
+    <div id="checkout-modal" class="modal" style="max-width: 550px;">
+        <span class="close-modal" onclick="closeCheckout()">X</span>
+        <h2 style="font-family:'Orbitron'; color:#00f2ff; margin-bottom:15px;">FINALIZAR PEDIDO</h2>
+        <div style="max-height: 500px; overflow-y: auto; padding-right: 10px;">
+            <input type="text" id="cust-name-check" placeholder="NOME COMPLETO">
+            <input type="text" id="cust-address" placeholder="ENDEREÇO / NÚMERO">
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="cust-city" placeholder="CIDADE / ESTADO" style="flex: 2;">
+                <input type="text" id="cust-cep" placeholder="CEP" style="flex: 1;">
+            </div>
+            <select id="pay-method" onchange="updatePaymentDetails()" style="width: 100%; margin: 15px 0;">
+                <option value="cartao">Cartão de Crédito (Até 7x)</option>
+                <option value="pix">PIX (5% de Desconto)</option>
+            </select>
+            <div id="payment-info" style="margin: 15px 0; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;"></div>
+            <h3 id="final-price-display" style="text-align: center;">TOTAL A PAGAR: R$ 0</h3>
+            <button class="btn-buy" style="margin-top:15px; width: 100%;" onclick="confirmPurchase()">CONFIRMAR E PAGAR</button>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast">
+        <span id="toast-icon">✔️</span>
+        <span id="toast-message"></span>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
